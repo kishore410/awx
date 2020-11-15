@@ -1,0 +1,32 @@
+###############Setup Postfix################
+1)Install below packages
+yum -y install postfix cyrus-sasl-plain mailx
+2) Add below lines to configuration file
+myhostname = hostname.example.com
+
+relayhost = [smtp.gmail.com]:587
+smtp_use_tls = yes
+smtp_sasl_auth_enable = yes
+smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd
+smtp_tls_CAfile = /etc/ssl/certs/ca-bundle.crt
+smtp_sasl_security_options = noanonymous
+smtp_sasl_tls_security_options = noanonymous
+
+3) Specify SASL credentials to /etc/postfix/sasl_passwd
+[smtp.gmail.com]:587 username:password
+
+4) Map that file & change permissions using below command
+postmap /etc/postfix/sasl_passwd
+
+#chown root:postfix /etc/postfix/sasl_passwd*
+#chmod 640 /etc/postfix/sasl_passwd*
+
+5)systemctl start postfix
+  systemctl restart postfix
+
+6) Test
+echo "This is a test." | mail -s "test message" user@example.net
+
+Note: Make sure you should enable the less secure app access
+In gmail - Profile - Manage google account - security - turn on less secure app access 
+
