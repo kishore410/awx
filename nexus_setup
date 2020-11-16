@@ -1,0 +1,89 @@
+###Author Kishore######
+Need to install java
+#yum install java-1.8.0-openjdk.x86_64 -y
+2) Download Nexus file & untar
+#cd /opt
+#wget http://download.sonatype.com/nexus/3/nexus-3.26.1-02-unix.tar.gz
+#tar -xvf nexus-3.26.1-02-unix.tar.gz
+#mv nexus-3.26.1-02 nexus
+3) Add nexus user
+#useradd nexus
+4) Change the nexus files & directory
+#chown -R nexus:nexus /opt/sonatype-work
+#chown -R nexus:nexus /opt/nexus
+5) Add nexus as a user
+#vi /opt/nexus/bin/nexus.rc
+run_as_user="nexus"
+6) Modify memory settings in Nexus configuration file
+#vi /opt/nexus/bin/nexus.vmoptions
+-Xms512m
+-Xmx512m
+-XX:MaxDirectMemorySize=512m
+
+7) Configure Nexus to run as a service
+#vi /etc/systemd/system/nexus.service
+[Unit]
+Description=nexus service
+After=network.target
+[Service]
+Type=forking
+LimitNOFILE=65536
+User=nexus
+Group=nexus
+ExecStart=/opt/nexus/bin/nexus start
+ExecStop=/opt/nexus/bin/nexus stop
+User=nexus
+Restart=on-abort
+[Install]
+WantedBy=multi-user.target
+
+8) link a file
+# ln -s /opt/nexus/bin/nexus /etc/init.d/nexus
+
+9) Start the nexus service
+#systemctl start nexus
+
+10) Check the nexus logs
+tail -f /opt/sonatype-work/nexus3/log/nexus.log
+
+11)http://public_dns_name:8081
+#######for password################
+cat /opt/sonatype-work/nexus3/admin.password
+
+Create a repositroy in Nexus site
+12) Repositories --> Create Repository --> docker(hosted)
+        --> Repository  Name
+        --> Check http & give port number Ex: 8083
+        --> Enable Docker V1 API
+        --> Check strict content type validation
+
+13) Add Docker Bearer Token Realmi & Save
+  Settings --> Realms --> Activate the Docker Bearer Token Realm
+
+################Client Side ###########
+14) Add daemon.json file in /etc/docker/
+#cat /etc/docker/daemon.json
+{
+ "insecure-registries" : ["192.168.49.133:8083"]
+}
+
+#systemctl restart docker
+14) #docker login -u admin -p kishore <nexu_ip>:<nexus_port>
+
+#docker tag nginx 192.168.49.133:8083/nginx:v1
+#docker push 192.168.49.133:8083/nginx:v1 
+#docker pull 192.168.49.133:8083/nginx:v1
+
+
+
+
+
+
+
+
+
+ 
+
+Useful Links:
+https://www.coachdevops.com/search?q=nexus
+https://www.cidevops.com/2018/06/jenkins-nexus-integration-how-to.html
